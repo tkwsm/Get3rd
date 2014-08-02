@@ -7,7 +7,7 @@ include Bio
 
 module ParseAlign
 
-  class HandleAlignmentHash
+  class HandleAlignment
 
     def initialize( consensus_hash )
       @c = consensus_hash
@@ -33,10 +33,10 @@ module ParseAlign
 
   end ## End of Create Alignment Hash
 
-  def CreateAlignmentHash( alignment_file_in_pir_format )
+  def CreateAlignment( alignment_file_in_pir_format )
 
     ch = {}; h  = {}; defline = "";
-    ff = FlatFile.new(FastaFormat, open(alignment_file_in_pir_format)
+    ff = FlatFile.new(FastaFormat, open(alignment_file_in_pir_format) )
     ff.each do |e|
       defline = e.definition.slice(/\S+\;(\S+)/, 1)
       h[ defline ] = e.naseq.split("")
@@ -50,18 +50,31 @@ module ParseAlign
  
   end
 
-end
+  def CreateConsensus( alignment_file_in_pir_format )
 
-alignment_size = h.values[0].size
-for i in 0..(alignment_size - 1)
-  ch[ i ] = []
-  h.each_key do |defline|
-    ch[ i ] << h[ defline ][i]
+    ch = {}
+    h = CreateAlignment( alignment_file_in_pir_format )
+    alignment_size = h.values[0].size
+    for i in 0..(alignment_size - 1)
+      ch[ i ] = []
+      h.each_key do |defline|
+        ch[ i ] << h[ defline ][i]
+      end
+    end
+    return ch
+
   end
+
+  module_function  :CreateConsensus
+  module_function  :CreateAlignment
+
 end
 
-pa = ParseAlign.new( ch )
-p pa
+pa = ParseAlign::HandleAlignment.new(ParseAlign.CreateConsensus(ARGV.shift)).c
+pa.each_key do |num|
+  print num, "\t"
+  p pa[num]
+end
 
 
 
