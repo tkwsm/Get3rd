@@ -12,14 +12,44 @@ module ParseAlign
     def initialize( consensus_hash )
       @c = consensus_hash
       @a = get_aligned
+      @s = get_stead
+      @cp = get_compensation
     end
 
-    attr_reader :c, :a
+    attr_reader :c, :a, :s, :cp
+
+    def get_compensation
+      cp = {}
+      sorted_c_keys = @c.keys.sort{|x, y| x.to_i <=> y.to_i }
+      sorted_c_keys.each{|k| cp[k] = [] }
+      num_of_species = @c.values[0].size
+      non_gap_pos = []
+      for j in 0..( num_of_species - 1 )
+        non_gap_pos = sorted_c_keys.collect{|k| k if @c[k][j] != "-" and @c[k][j] != "*" }.compact.sort
+        non_gap_pos.each_with_index do |k, m|
+          cp[k][j] = m
+        end
+      end
+      return cp
+    end
+
+    def get_stead
+      stead = {}
+      @a.each_key do |k|
+        if @a[k].uniq.size == 1 and 
+           @a[k][0] != "-" and 
+           @a[k][0] != "*" and 
+           @a[k][0] =~ /\S/
+          stead[k] = @a[k]
+        end
+      end
+      return stead
+    end
 
     def get_aligned
       aligned = {}
       @c.each_key do |k|
-        if @c[k].include?("-")
+        unless @c[k].include?("-") or @c[k].include?("*") 
           aligned[k] = @c[k]
         end
       end
@@ -70,11 +100,17 @@ module ParseAlign
 
 end
 
-pa = ParseAlign::HandleAlignment.new(ParseAlign.CreateConsensus(ARGV.shift)).c
-pa.each_key do |num|
-  print num, "\t"
-  p pa[num]
+if $0 == __FILE__
+
+  ch = ParseAlign.CreateConsensus(ARGV.shift)
+  pa = ParseAlign::HandleAlignment.new( ch )
+
+  pa.s.each_key do |num|
+    print num, "\t"
+    p pa.s[num]
+    p ch[ num ]
+    p pa.cp[num]
+  end
+
+
 end
-
-
-
