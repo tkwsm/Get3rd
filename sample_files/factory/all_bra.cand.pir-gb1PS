@@ -1,0 +1,62 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 20 20 200 613 
+%%Title: all_bra.cand.pir
+%%Creator Gblocks 0.91b
+%%Pages: 1
+
+/seq {
+newpath
+ 25   moveto
+0  10   rlineto
+  35   lineto
+0 -10 rlineto
+closepath
+fill
+} def
+
+/block {
+newpath
+ 10   moveto
+0  10   rlineto
+  20   lineto
+0 -10 rlineto
+closepath
+fill
+} def
+
+/sh1 {
+30 add
+} def
+
+/sh2 {
+31 add
+} def
+
+/Helvetica findfont 12 scalefont setfont
+
+gsave
+180 0 translate
+90 rotate
+
+newpath
+30 100 moveto
+(Blocks found by Gblocks version 0.91b for the file all_bra.cand.pir-gb1PS) show
+30 80 moveto
+(Parameters used: 6 9 8 5 1) show
+
+1 sh1 563 sh2 seq
+
+91 sh1 186 sh2 block
+188 sh1 207 sh2 block
+211 sh1 254 sh2 block
+256 sh1 268 sh2 block
+274 sh1 279 sh2 block
+281 sh1 290 sh2 block
+302 sh1 307 sh2 block
+313 sh1 331 sh2 block
+334 sh1 340 sh2 block
+391 sh1 396 sh2 block
+
+grestore
+showpage
+%%EOF

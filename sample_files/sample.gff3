@@ -1,0 +1,3 @@
+scaf1 TEST gene  7  30 . +  .  ID="gene1"; ; 
+scaf1 TEST cds   7  12 . +  0  ID="gene1.cds1"; Parent="gene1"; 
+scaf1 TEST cds  22  30 . +  0  ID="gene1.cds2"; Parent="gene1"; 
