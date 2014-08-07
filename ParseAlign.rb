@@ -14,14 +14,14 @@ module ParseAlign
 
     def initialize( consensus_hash )
       @c = consensus_hash
-      @gids = {}
-      @c[0].each_with_index{ |gid, i| @gids[ gid ] = i }
+      @gids  = {}; @c[0].each_with_index{ |gid, i| @gids[ gid ] = i }
+      @i2gid = {}; @c[0].each_with_index{ |gid, i| @i2gid[ i ] = gid }
       @a = get_aligned
       @ac = get_all_conserved
       @cp = get_compensation
     end
 
-    attr_reader :c, :a, :ac, :cp, :gids
+    attr_reader :c, :a, :ac, :cp, :gids, :i2gid
 
     def get_compensation
       cp = {}
@@ -71,11 +71,26 @@ module ParseAlign
       @ta = transcript_alignment
     end
 
+    def check_correspondence
+      @ha.gids.each_key do |gid|
+        roop_size = ( ( @ta[gid].size / 3 ) - 1 ) 
+        for i in ( 1..roop_size )
+          next unless @ha.cp[i][ @ha.gids[gid] ]
+          cp_pos = @ha.cp[i][ @ha.gids[gid] ] - 1
+          triplet4t = ""
+          triplet4t = @ta[gid][(cp_pos*3)] + @ta[gid][(cp_pos*3+1)] + @ta[gid][(cp_pos*3+2)]
+          triplet4p = @ha.c[ (i) ][ @ha.gids[gid] ]
+p [triplet4t, triplet4p]
+        end
+      end
+      return true
+    end
+
     def show_corresponding_triplet( gid, aa_pos )
-      corresponding_triplet = ""
-      ts_pos = @ha.cp[aa_pos][ @ha.gids[gid] ]
- p ts_pos
-      return corresponding_triplet
+      corresp_triplet = ""
+      ts_pos = ( @ha.cp[aa_pos][ @ha.gids[gid] ] * 3 ) - 2
+      corresp_triplet = @ta[gid][ts_pos] + @ta[gid][(ts_pos+1)] + @ta[gid][(ts_pos+2)]
+      return corresp_triplet
     end
 
   end

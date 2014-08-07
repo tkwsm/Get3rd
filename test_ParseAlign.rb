@@ -54,14 +54,16 @@ class Test_ParseAlign < MiniTest::Test
     assert_equal( ["L"], @ha.get_all_conserved[366].uniq )
   end
 
-  def test_show_corresponding_triplet
-    gid = "ENSMUSP00000027859"
-    pos_aa = 328
-    p @cah[ gid ][ pos_aa ]
-    p @ha.get_compensation[ pos_aa ][ 0 ]
-    assert_equal(String, @tc.show_corresponding_triplet(gid, pos_aa).class)
-    assert_equal("ccu", @tc.show_corresponding_triplet(gid, pos_aa))
+  def test_check_correspondence
+    assert_equal( true, @tc.check_correspondence )
   end
+
+#  def test_show_corresponding_triplet
+#    gid = "ENSMUSP00000027859"
+#    pos_aa = 328
+#    assert_equal(Bio::Sequence::NA, @tc.show_corresponding_triplet(gid, pos_aa).class)
+#    assert_equal("ccu", @tc.show_corresponding_triplet(gid, pos_aa))
+#  end
 
 end
 
