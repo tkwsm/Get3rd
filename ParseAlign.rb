@@ -4,46 +4,37 @@ require 'rubygems'
 require 'bio'
 include Bio
 
-
 module ParseAlign
+
+  def huga
+    "foo"
+  end
 
   class HandleAlignment
 
     def initialize( consensus_hash )
       @c = consensus_hash
       @a = get_aligned
-      @s = get_stead
+      @ac = get_all_conserved
       @cp = get_compensation
     end
 
-    attr_reader :c, :a, :s, :cp
+    attr_reader :c, :a, :ac, :cp
 
     def get_compensation
       cp = {}
-      sorted_c_keys = @c.keys.sort{|x, y| x.to_i <=> y.to_i }
-      sorted_c_keys.each{|k| cp[k] = [] }
+      # @c: keys is the alley of alignment-position
+      alignment_positions = @c.keys.sort
       num_of_species = @c.values[0].size
+      alignment_positions.each{|k| cp[k] = Array.new( num_of_species )}
       non_gap_pos = []
-      for j in 0..( num_of_species - 1 )
-        non_gap_pos = sorted_c_keys.collect{|k| k if @c[k][j] != "-" and @c[k][j] != "*" }.compact.sort
-        non_gap_pos.each_with_index do |k, m|
-          cp[k][j] = m
+      for s in 0..( num_of_species - 1 )
+        non_gap_pos = alignment_positions.collect{|k| k if @c[k][s] != "-" and @c[k][s] != "*" }.compact.sort
+        non_gap_pos.each_with_index do |k, i|
+          cp[k][s] = i
         end
       end
       return cp
-    end
-
-    def get_stead
-      stead = {}
-      @a.each_key do |k|
-        if @a[k].uniq.size == 1 and 
-           @a[k][0] != "-" and 
-           @a[k][0] != "*" and 
-           @a[k][0] =~ /\S/
-          stead[k] = @a[k]
-        end
-      end
-      return stead
     end
 
     def get_aligned
@@ -57,13 +48,21 @@ module ParseAlign
     end
 
     def get_all_conserved
-      @c.each_key do |k|
+      all_conserved = {}
+      @a.each_key do |k|
+        if @a[k].uniq.size == 1 and 
+           @a[k][0] != "-" and 
+           @a[k][0] != "*" and 
+           @a[k][0] =~ /\S/
+          all_conserved[k] = @a[k]
+        end
       end
+      return all_conserved
     end
 
   end ## End of Create Alignment Hash
 
-  def CreateAlignment( alignment_file_in_pir_format )
+  def CreateAlignmentHash( alignment_file_in_pir_format, pirformat="true" )
 
     ch = {}; h  = {}; defline = "";
     ff = FlatFile.new(FastaFormat, open(alignment_file_in_pir_format) )
@@ -83,9 +82,9 @@ module ParseAlign
   def CreateConsensus( alignment_file_in_pir_format )
 
     ch = {}
-    h = CreateAlignment( alignment_file_in_pir_format )
-    alignment_size = h.values[0].size
-    for i in 0..(alignment_size - 1)
+    h = CreateAlignmentHash( alignment_file_in_pir_format, "true" )
+    alignment_length = h.values[0].size
+    for i in 0..(alignment_length - 1)
       ch[ i ] = []
       h.each_key do |defline|
         ch[ i ] << h[ defline ][i]
@@ -95,14 +94,16 @@ module ParseAlign
 
   end
 
-  module_function  :CreateConsensus
-  module_function  :CreateAlignment
+#  module_function  :CreateConsensus
+#  module_function  :CreateAlignmentHash
 
 end
 
 if $0 == __FILE__
 
-  ch = ParseAlign.CreateConsensus(ARGV.shift)
+  sample_aa_file = "./sample_files/factory/all_bra.cand.pir"
+  ch = ParseAlign.CreateConsensus( sample_aa_file )
+#  ch = ParseAlign.CreateConsensus(ARGV.shift)
   pa = ParseAlign::HandleAlignment.new( ch )
 
   pa.s.each_key do |num|
@@ -111,6 +112,5 @@ if $0 == __FILE__
     p ch[ num ]
     p pa.cp[num]
   end
-
 
 end
