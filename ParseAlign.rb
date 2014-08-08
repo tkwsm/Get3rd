@@ -15,6 +15,7 @@ module ParseAlign
     def initialize( consensus_hash )
       @c = consensus_hash
       @gids  = {}; @c[0].each_with_index{ |gid, i| @gids[ gid ] = i }
+      @gids_sort = @gids.keys.sort{|gidx, gidy| @gids[gidx] <=> @gids[gidy]}
       @i2gid = {}; @c[0].each_with_index{ |gid, i| @i2gid[ i ] = gid }
       @a = get_aligned
       @ac = get_all_conserved
@@ -30,9 +31,10 @@ module ParseAlign
       num_of_species = @c.values[0].size
       alignment_positions.each{|k| cp[k] = Array.new( num_of_species )}
       non_gap_pos = []
+      cp[0] = @gids_sort
       for s in 0..( num_of_species - 1 )
-        non_gap_pos = alignment_positions.collect{|k| k if @c[k][s] != "-" and @c[k][s] != "*" }.compact.sort
-        non_gap_pos.each_with_index do |k, i|
+        non_gap_pos = alignment_positions.collect{|k| k if @c[k][s] != "-" }.compact.sort
+        non_gap_pos[1..-1].each_with_index do |k, i|
           cp[k][s] = i
         end
       end
@@ -42,7 +44,7 @@ module ParseAlign
     def get_aligned
       aligned = {}
       @c.each_key do |k|
-        unless @c[k].include?("-") or @c[k].include?("*") 
+        unless @c[k].include?("-") or @c[k].include?(nil) 
           aligned[k] = @c[k]
         end
       end
@@ -54,7 +56,6 @@ module ParseAlign
       @a.each_key do |k|
         if @a[k].uniq.size == 1 and 
            @a[k][0] != "-" and 
-           @a[k][0] != "*" and 
            @a[k][0] =~ /\S/
           all_conserved[k] = @a[k]
         end
@@ -72,18 +73,28 @@ module ParseAlign
     end
 
     def check_correspondence
+      checker = nil
+      seq_checker = 0
+      spe_checker = []
       @ha.gids.each_key do |gid|
+        seq_checker = 0
         roop_size = ( ( @ta[gid].size / 3 ) - 1 ) 
-        for i in ( 1..roop_size )
-          next unless @ha.cp[i][ @ha.gids[gid] ]
-          cp_pos = @ha.cp[i][ @ha.gids[gid] ] - 1
+	@ha.c.each_key do |i|
+          next if i == 0
+	  next unless @ha.cp[i][ @ha.gids[gid] ] 
+          cp_pos = @ha.cp[i][ @ha.gids[gid] ] 
           triplet4t = ""
-          triplet4t = @ta[gid][(cp_pos*3)] + @ta[gid][(cp_pos*3+1)] + @ta[gid][(cp_pos*3+2)]
           triplet4p = @ha.c[ (i) ][ @ha.gids[gid] ]
-p [triplet4t, triplet4p]
+	  next if triplet4p == "*" or (cp_pos * 3) >= @ta[gid].size
+          triplet4t = @ta[gid][(cp_pos*3)] + @ta[gid][(cp_pos*3+1)] + @ta[gid][(cp_pos*3+2)]
+          seq_checker += 1 if triplet4t.translate == triplet4p
         end
+	if seq_checker == roop_size or seq_checker == roop_size + 1
+	  spe_checker << gid 
+	end
       end
-      return true
+      checker = true if spe_checker.size == @ha.gids.keys.size
+      return checker
     end
 
     def show_corresponding_triplet( gid, aa_pos )
@@ -130,7 +141,7 @@ p [triplet4t, triplet4p]
     for i in 1..alignment_length
       ch[ i ] = []
       h.each_key do |defline|
-        ch[ i ] << h[ defline ][i]
+        ch[ i ] << h[ defline ][(i-1)]
       end
     end
     return ch
